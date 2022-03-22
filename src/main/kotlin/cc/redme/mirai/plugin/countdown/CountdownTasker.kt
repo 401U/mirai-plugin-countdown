@@ -105,16 +105,21 @@ object CountdownTasker: CoroutineScope {
 
     suspend fun checkKeyword(message: MessageChain, contact: Contact) = mutex.withLock{
         checkOrInitGroupData(contact.id)
+        if(message.content.length < 2){
+            return@withLock
+        }
         var reply = messageChainOf(message.quote())
         val matchMap = mutableMapOf<Int, String>()
-        val curr = message.time
         for(patternString in config.query_pattern){
             val pattern = Regex(patternString)
             if(pattern.containsMatchIn(message.content)){
-                val keyword = pattern.find(message.content)!!.value
+                var keyword = pattern.find(message.content)!!.value
+                for(c in "+*.{}()|"){
+                    keyword = keyword.replace(c.toString(), "\\$c")
+                }
                 for(i in 0 until data[contact.id]!!.size){
                     if(data[contact.id]!![i].name.contains(Regex(keyword))){
-                        matchMap[i]= TimeUtils.parseCountdownPattern(data[contact.id]?.get(i)!!, curr.toLong())
+                        matchMap[i]= TimeUtils.parseCountdownPattern(data[contact.id]?.get(i)!!, message.time.toLong())
                     }
                 }
                 break
