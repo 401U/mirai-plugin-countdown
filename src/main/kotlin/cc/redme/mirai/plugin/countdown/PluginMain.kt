@@ -50,7 +50,7 @@ object PluginMain : KotlinPlugin(
         val eventChannel = GlobalEventChannel.parentScope(this)
         eventChannel.subscribeAlways<GroupMessageEvent>{
             //群消息
-            CountdownTasker.checkKeyword(message, sender)
+            CountdownTasker.checkKeyword(message, group)
             /*
             if (message.contentToString().startsWith("复读")) {
                 group.sendMessage(message.contentToString().replace("复读", ""))
