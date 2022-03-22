@@ -1,13 +1,14 @@
 package cc.redme.mirai.plugin.countdown
 
+import cc.redme.mirai.plugin.countdown.command.CountdownCommand
+import cc.redme.mirai.plugin.countdown.data.PluginConfig
+import cc.redme.mirai.plugin.countdown.data.PluginData
+import net.mamoe.mirai.console.command.CommandManager
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.events.FriendMessageEvent
 import net.mamoe.mirai.event.events.GroupMessageEvent
-import net.mamoe.mirai.message.data.Image
-import net.mamoe.mirai.message.data.Image.Key.queryUrl
-import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.utils.info
 
 /**
@@ -43,10 +44,14 @@ object PluginMain : KotlinPlugin(
     override fun onEnable() {
         logger.info { "Countdown Plugin loaded" }
         //配置文件目录 "${dataFolder.absolutePath}/"
+        PluginConfig.reload()
+        PluginData.reload()
+        CommandManager.registerCommand(CountdownCommand)
         val eventChannel = GlobalEventChannel.parentScope(this)
         eventChannel.subscribeAlways<GroupMessageEvent>{
             //群消息
-            //复读示例
+            CountdownTasker.checkKeyword(message, sender)
+            /*
             if (message.contentToString().startsWith("复读")) {
                 group.sendMessage(message.contentToString().replace("复读", ""))
             }
@@ -70,11 +75,12 @@ object PluginMain : KotlinPlugin(
                     //如果消息这一部分是纯文本
                     group.sendMessage("纯文本，内容:${it.content}")
                 }
-            }
+            }*/
         }
         eventChannel.subscribeAlways<FriendMessageEvent>{
+            CountdownTasker.checkKeyword(message, sender)
             //好友信息
-            sender.sendMessage("hi")
+            //sender.sendMessage("hi")
         }
     }
 }
