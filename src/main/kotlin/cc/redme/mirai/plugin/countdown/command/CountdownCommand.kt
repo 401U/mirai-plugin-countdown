@@ -14,17 +14,17 @@ object CountdownCommand: CompositeCommand(
 ) {
     @SubCommand("add", "添加")
     suspend fun CommandSender.add(name: String, time: String, pattern: String = "距离{name}还有{time}", contact: Contact=Contact())=sendMessage(
-        CountdownTasker.addCountdown(name, time, pattern, contact.id)
+        CountdownTasker.addCountdown(name, time, pattern, contact)
     )
 
     @SubCommand("del", "delete", "remove", "删除")
     suspend fun CommandSender.del(index: Int, contact: Contact=Contact())=sendMessage(
-        CountdownTasker.delCountdown(index, contact.id)
+        CountdownTasker.delCountdown(index, contact)
     )
 
     @SubCommand("list", "page", "列表")
     suspend fun CommandSender.list(page: Int=1, contact: Contact=Contact())=sendMessage(
-        CountdownTasker.listCountdown(page, contact.id)
+        CountdownTasker.listCountdown(page, contact)
     )
 
     private fun CommandSender.Contact(): Contact = subject?:throw CommandArgumentParserException("无法从当前环境获取联系人")
