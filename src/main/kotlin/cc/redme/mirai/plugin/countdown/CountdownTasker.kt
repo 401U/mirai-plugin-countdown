@@ -30,27 +30,6 @@ object CountdownTasker: CoroutineScope {
 
     fun stop(){}
 
-    fun parseTimeStamp(time: String): Long? {
-        // 2022-03-21.10:29:25
-        // 2022-03-21
-        // 10:29(:25)
-        // ..年..个月..天..小时..分钟..秒后
-
-        val pattern1 = Regex("^\\d{4,}(-\\d{1,2}){2}(\\.\\d{1,2}(:\\d{1,2}){0,2})?\$")
-        //val pattern2 = Regex("^\\d{1,2}(:\\d{1,2}){1,2}\$")
-        val pattern3 = Regex("^(\\d+年)?(\\d+个月)?(\\d+天)?(\\d+小时)?(\\d+分钟)?(\\d+秒)?(后|之后|以后)\$")
-        return when{
-            time.matches(pattern1) -> {
-                1
-            }
-            // time.matches(pattern2) -> 2
-            time.matches(pattern3) -> {
-                2
-            }
-            else -> null
-        }
-    }
-
     private fun checkOrInitGroupData(contact: Long){
         if(!data.containsKey(contact)){
             data[contact]= mutableListOf()
@@ -59,7 +38,7 @@ object CountdownTasker: CoroutineScope {
 
     suspend fun addCountdown(name: String, timeString: String, pattern: String, contact: Long): String = mutex.withLock {
         checkOrInitGroupData(contact)
-        val timestamp = TimeUtils.patternToTimestamp(timeString)
+        val timestamp = TimeUtils.inputPatternToTimestamp(timeString)
         if (timestamp == null) {
             "不合法的时间格式!"
         } else {

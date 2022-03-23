@@ -26,7 +26,8 @@ object TimeUtils {
         DateTimeFormatter.ofPattern("H:m")
     )
 
-    fun patternToTimestamp(timeString: String): Long?{
+    /* 将用户输入的时间格式转换为时间戳形式 */
+    fun inputPatternToTimestamp(timeString: String): Long?{
         var payload: Long
         when{
             timeString.matches(patterns[0]) || timeString.matches(patterns[1]) -> {
@@ -54,10 +55,13 @@ object TimeUtils {
         }
     }
 
+    /* 获取当前时间戳 */
     fun currentTimeStamp():Long=LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8"))
 
+    /* 时间戳转换为友好的时间格式 */
     fun timeStampToDate(timestamp: Long): String=SimpleDateFormat("y-M-d H:m:s").format(timestamp*1000)
 
+    /* 计算倒计时距离,并转化为更友好的的时间格式  */
     @OptIn(ExperimentalTime::class)
     fun parseCountdownPattern(date: CountdownData, curr: Long): String {
         var payload = ""

@@ -43,44 +43,18 @@ object PluginMain : KotlinPlugin(
 ) {
     override fun onEnable() {
         logger.info { "Countdown Plugin loaded" }
-        //配置文件目录 "${dataFolder.absolutePath}/"
         PluginConfig.reload()
         PluginData.reload()
         CommandManager.registerCommand(CountdownCommand)
         val eventChannel = GlobalEventChannel.parentScope(this)
-        eventChannel.subscribeAlways<GroupMessageEvent>{
-            //群消息
+        eventChannel.subscribeAlways<GroupMessageEvent> {
+            // 群消息
             CountdownTasker.checkKeyword(message, group)
-            /*
-            if (message.contentToString().startsWith("复读")) {
-                group.sendMessage(message.contentToString().replace("复读", ""))
-            }
-            if (message.contentToString() == "hi") {
-                //群内发送
-                group.sendMessage("hi")
-                //向发送者私聊发送消息
-                sender.sendMessage("hi")
-                //不继续处理
-                return@subscribeAlways
-            }
-            //分类示例
-            message.forEach {
-                //循环每个元素在消息里
-                if (it is Image) {
-                    //如果消息这一部分是图片
-                    val url = it.queryUrl()
-                    group.sendMessage("图片，下载地址$url")
-                }
-                if (it is PlainText) {
-                    //如果消息这一部分是纯文本
-                    group.sendMessage("纯文本，内容:${it.content}")
-                }
-            }*/
+
         }
-        eventChannel.subscribeAlways<FriendMessageEvent>{
+        eventChannel.subscribeAlways<FriendMessageEvent> {
+            // 好友消息
             CountdownTasker.checkKeyword(message, sender)
-            //好友信息
-            //sender.sendMessage("hi")
         }
     }
 }
