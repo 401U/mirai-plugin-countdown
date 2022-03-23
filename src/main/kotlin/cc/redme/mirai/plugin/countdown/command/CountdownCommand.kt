@@ -9,7 +9,7 @@ import net.mamoe.mirai.contact.Contact
 
 object CountdownCommand: CompositeCommand(
     owner = PluginMain,
-    primaryName = "countdown", "倒计时", "ddl", "deadline",
+    primaryName = "ddl", "倒计时", "countdown", "deadline",
     description = "倒数日指令"
 ) {
     @SubCommand("add", "添加")
