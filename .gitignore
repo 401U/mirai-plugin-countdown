@@ -1,12 +1,17 @@
-# Project exclude paths
+# IDE
+.vscode/
+.idea/
+
+# Build
 .gradle/
 build/
-.idea/
 test/
 out/
 run/
-bots/
-config/
 .run/
+
+# Mirai
+bots/
 data/
+config/
 plugins/
