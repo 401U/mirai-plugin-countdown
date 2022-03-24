@@ -2,11 +2,15 @@ package cc.redme.mirai.plugin.countdown.command
 
 import cc.redme.mirai.plugin.countdown.CountdownTasker
 import cc.redme.mirai.plugin.countdown.PluginMain
+import cc.redme.mirai.plugin.countdown.event.AddCountdownEvent
+import cc.redme.mirai.plugin.countdown.utils.TimeUtils
 import net.mamoe.mirai.console.command.CommandSender
+import net.mamoe.mirai.console.command.CommandSenderOnMessage
 import net.mamoe.mirai.console.command.CompositeCommand
 import net.mamoe.mirai.console.command.descriptor.CommandArgumentParserException
 import net.mamoe.mirai.console.permission.PermissionService.Companion.hasPermission
 import net.mamoe.mirai.contact.Contact
+import net.mamoe.mirai.event.broadcast
 
 object CountdownCommand: CompositeCommand(
     owner = PluginMain,
@@ -14,13 +18,22 @@ object CountdownCommand: CompositeCommand(
     description = "倒数日指令"
 ) {
     @SubCommand("add", "添加")
-    suspend fun CommandSender.add(name: String, time: String, pattern: String = "距离{name}还有{time}", contact: Contact?=null)=sendMessage(
-        when{
-            contact!=null && hasPermission(PluginMain.crossContactPerm)-> CountdownTasker.addCountdown(name, time, pattern, contact)
-            contact == null -> CountdownTasker.addCountdown(name, time, pattern, Contact())
-            else -> "权限不足"
+    suspend fun CommandSenderOnMessage<*>.add(name: String, time: String, contact: Contact?=null){
+        val target: Contact = when{
+            contact!=null && hasPermission(PluginMain.crossContactPerm)-> contact
+            contact == null -> Contact()
+            else -> {
+                sendMessage("权限不足")
+                return
+            }
         }
-    )
+        val timestamp = TimeUtils.inputPatternToTimestamp(time)
+        if(timestamp == null) {
+            sendMessage("时间格式错误")
+            return
+        }
+        AddCountdownEvent(target, name, timestamp, fromEvent).broadcast()
+    }
 
     @SubCommand("del", "delete", "remove", "删除")
     suspend fun CommandSender.del(index: Int, contact: Contact?=null)=sendMessage(

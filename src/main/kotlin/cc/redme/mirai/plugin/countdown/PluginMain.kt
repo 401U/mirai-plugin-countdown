@@ -3,13 +3,12 @@ package cc.redme.mirai.plugin.countdown
 import cc.redme.mirai.plugin.countdown.command.CountdownCommand
 import cc.redme.mirai.plugin.countdown.data.PluginConfig
 import cc.redme.mirai.plugin.countdown.data.PluginData
+import cc.redme.mirai.plugin.countdown.event.CustomEventListener
 import net.mamoe.mirai.console.command.CommandManager
+import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
 import net.mamoe.mirai.console.permission.PermissionService
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
-import net.mamoe.mirai.event.GlobalEventChannel
-import net.mamoe.mirai.event.events.FriendMessageEvent
-import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.utils.info
 
 object PluginMain : KotlinPlugin(
@@ -37,14 +36,18 @@ object PluginMain : KotlinPlugin(
         CommandManager.registerCommand(CountdownCommand)
         notifyPerm
         crossContactPerm
-        val eventChannel = GlobalEventChannel.parentScope(this)
-        eventChannel.subscribeAlways<GroupMessageEvent> {
-            // 群消息
-            CountdownTasker.checkKeyword(message, group)
+        if(PluginConfig.daemonInterval > 0){
+            CountdownTasker.start()
         }
-        eventChannel.subscribeAlways<FriendMessageEvent> {
-            // 好友消息
-            CountdownTasker.checkKeyword(message, sender)
-        }
+        CustomEventListener.subscribe()
+    }
+
+    override fun onDisable() {
+        CountdownCommand.unregister()
+        CountdownTasker.stop()
+        PluginData.save()
+        PluginConfig.save()
+        super.onDisable()
+        CustomEventListener.stop()
     }
 }
