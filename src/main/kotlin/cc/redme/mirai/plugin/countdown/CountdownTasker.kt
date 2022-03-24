@@ -4,11 +4,13 @@ import cc.redme.mirai.plugin.countdown.data.CountdownData
 import cc.redme.mirai.plugin.countdown.data.PluginConfig
 import cc.redme.mirai.plugin.countdown.data.PluginData
 import cc.redme.mirai.plugin.countdown.utils.TimeUtils
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import net.mamoe.mirai.Bot
+import net.mamoe.mirai.console.permission.AbstractPermitteeId
+import net.mamoe.mirai.console.permission.PermissionService.Companion.hasPermission
+import net.mamoe.mirai.console.permission.PermitteeId
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.message.data.MessageChain
@@ -17,7 +19,9 @@ import net.mamoe.mirai.message.data.content
 import net.mamoe.mirai.message.data.messageChainOf
 import net.mamoe.mirai.message.data.time
 import java.lang.Integer.min
+import java.util.stream.Collectors
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.ExperimentalTime
 
 /**
  * 通过正负号区分群和用户
@@ -31,12 +35,65 @@ object CountdownTasker: CoroutineScope {
     private val config: PluginConfig = PluginConfig
     private val mutex = Mutex()
     private val data: MutableMap<Long, MutableList<CountdownData>> = PluginData.countdown
+    private var daemon: Job? = null
+    private val logger = PluginMain.logger
 
     fun start(){
-
+        daemon = daemonJob()
     }
 
-    fun stop(){}
+    fun stop(){
+        daemon?.cancel()
+    }
+
+    private fun checkNotifyPerm(id: Long): Boolean{
+        val permitteeId: PermitteeId? = when{
+            id>0 -> AbstractPermitteeId.ExactUser(id)
+            id < 0 -> AbstractPermitteeId.ExactGroup(-1 * id)
+            else -> null
+        }
+        return permitteeId?.hasPermission(PluginMain.notifyPerm) ?: false
+    }
+
+    private fun getContact(id: Long): Contact? {
+        return when{
+            id > 0 -> Bot.instances[0].getFriend(id)
+            id < 0 -> Bot.instances[0].getGroup(id)
+            else -> null
+        }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    private fun daemonJob() = launch {
+        while (isActive){
+            runCatching {
+                val curr = TimeUtils.currentTimeStamp()
+                val activeContact = data.keys.stream().filter { data[it]?.isNotEmpty() ?:false }
+                    .filter { checkNotifyPerm(it) }.collect(Collectors.toList())
+                for(contact in activeContact){
+                    val activeCountdown =
+                        data[contact]?.stream()?.filter { var1 -> var1.notify && var1.timestamp > curr }
+                    for (countdown in activeCountdown!!){
+                        val dur = countdown.timestamp - curr
+                        intervals@ for(interval in countdown.notifyInterval){
+                            if(interval < dur && dur % interval < config.daemonInterval){
+                                getContact(contact)?.sendMessage(TimeUtils.parseCountdownPattern(countdown, curr))
+                                break@intervals
+                            }
+                        }
+
+                    }
+                }
+
+            }.onSuccess {
+                logger.info("倒计时推送成功")
+                delay(1000L * config.daemonInterval)
+            }.onFailure {
+                logger.error("倒计时推送失败, 即将重试")
+                delay((10000L..30000L).random())
+            }
+        }
+    }
 
     private fun checkOrInitGroupData(contact: Contact){
         if(!data.containsKey(contact.delegate)){
@@ -44,15 +101,10 @@ object CountdownTasker: CoroutineScope {
         }
     }
 
-    suspend fun addCountdown(name: String, timeString: String, pattern: String, contact: Contact): String = mutex.withLock {
-        val timestamp = TimeUtils.inputPatternToTimestamp(timeString)
-        if (timestamp == null) {
-            "不合法的时间格式!"
-        } else {
-            checkOrInitGroupData(contact)
-            data[contact.delegate]?.add(CountdownData(name, timestamp, pattern))
-            "设置成功@${TimeUtils.currentTimeStamp()}"
-        }
+    suspend fun addCountdown(name: String, timestamp: Long, pattern: String, target: Contact, notify:Boolean, notifyInterval: List<Long>): String = mutex.withLock {
+        checkOrInitGroupData(target)
+        data[target.delegate]?.add(CountdownData(name, timestamp, pattern, notify, notifyInterval))
+        "设置成功@${TimeUtils.currentTimeStamp()}"
     }
 
     suspend fun delCountdown(index: Int, contact: Contact) = mutex.withLock{

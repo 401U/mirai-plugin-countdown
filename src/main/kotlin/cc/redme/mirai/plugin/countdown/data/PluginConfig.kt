@@ -5,11 +5,11 @@ import net.mamoe.mirai.console.data.ValueDescription
 import net.mamoe.mirai.console.data.value
 
 object PluginConfig: AutoSavePluginConfig("Countdown") {
-    @ValueDescription("计时提示的时间,")
-    val notify: Set<String> by value(setOf(""))
+    @ValueDescription("默认的计时提醒周期")
+    val defaultNotifyInterval by value("7d,1d,8h,30m")
 
-    @ValueDescription("插件管理员")
-    val admin: Set<String> by value(setOf(""))
+    @ValueDescription("守护进程检测周期, 单位为秒, 设为-1来禁用")
+    val daemonInterval by value(3600)
 
     @ValueDescription("列表每页行数")
     val page_len by value(10)

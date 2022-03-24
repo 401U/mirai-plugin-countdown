@@ -26,6 +26,13 @@ object TimeUtils {
         DateTimeFormatter.ofPattern("H:m")
     )
 
+    private val intervalPatternMap = mapOf(
+        "\\d+(?=天|d)" to 24*60*60L,
+        "\\d+(?=小时|h)" to 60*60L,
+        "\\d+(?=分钟|min|m)" to 60L,
+        "\\d+(?=秒|s)" to 1L
+    )
+
     /* 将用户输入的时间格式转换为时间戳形式 */
     fun inputPatternToTimestamp(timeString: String): Long?{
         var payload: Long
@@ -84,5 +91,27 @@ object TimeUtils {
             payload += "${duration.inWholeSeconds % 60}秒"
         }
         return date.pattern.replace("{name}", date.name).replace("{time}", payload)
+    }
+
+    fun parseIntervalList(intervalString: String): List<Long> {
+        val intervalList = intervalString.split(",")
+        val payload: MutableList<Long> = mutableListOf()
+        intervalList.forEach{
+            val entry = intervalPatternMap.asSequence().find { t->Regex(t.key).find(it)!=null }
+//            var entry: Map.Entry<String, Long>? = null
+//
+//            for(t in temp){
+//                if(Regex(t.key).find(it)!=null){
+//                if(it.matches(Regex(t.key))){
+//                    entry = t
+//                    break
+//                }
+//            }
+
+            if (entry != null) {
+                payload.add((Regex(entry.key).find(it)?.value?.toLong() ?: 0) * entry.value)
+            }
+        }
+        return payload.asSequence().filter { t->t!=0L }.sortedDescending().toList()
     }
 }
