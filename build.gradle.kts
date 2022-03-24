@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "cc.redme.mirai.plugin.countdown"
-version = "0.1.0"
+version = "0.2.0"
 
 repositories {
     mavenLocal()
@@ -16,5 +16,5 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    implementation("org.junit.jupiter:junit-jupiter:5.8.2")
+    testCompileOnly("org.junit.jupiter:junit-jupiter:5.8.2")
 }
