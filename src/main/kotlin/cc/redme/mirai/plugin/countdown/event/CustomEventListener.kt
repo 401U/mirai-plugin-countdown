@@ -41,7 +41,7 @@ internal object CustomEventListener: CoroutineScope by PluginMain.childScope("Cu
                 }
                 defaultQuoteReply { "格式错误, 使用默认值(不提醒)" }
 
-                timeout(30_000).quoteReply("超时, 使用默认值(不提醒)")
+                timeout(90_000).quoteReply("超时, 使用默认值(不提醒)")
             }
             if(notify){
                 message.subject.sendMessage("请设置提醒的周期, 格式如：\n1天,1d,1小时,1h,1分钟,1min,1m,1秒,1s\n多个提醒周期用英文逗号分隔开,回复 0 使用默认值")
@@ -55,7 +55,7 @@ internal object CustomEventListener: CoroutineScope by PluginMain.childScope("Cu
                             notifyInterval = temp
                         }
                     }
-                    timeout(30_000).quoteReply("超时, 使用默认值(${PluginConfig.defaultNotifyInterval})")
+                    timeout(90_000).quoteReply("超时, 使用默认值(${PluginConfig.defaultNotifyInterval})")
                 }
             }
 
@@ -67,7 +67,7 @@ internal object CustomEventListener: CoroutineScope by PluginMain.childScope("Cu
                 default {
                     pattern = this.message.toString()
                 }
-                timeout(30_000).quoteReply("超时, 使用默认值(距离{name}还有{time})")
+                timeout(90_000).quoteReply("超时, 使用默认值(距离{name}还有{time})")
             }
             message.subject.sendMessage(CountdownTasker.addCountdown(name, time, pattern, target, notify, notifyInterval))
         }
