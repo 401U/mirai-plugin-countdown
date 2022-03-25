@@ -77,10 +77,12 @@ object CountdownTasker: CoroutineScope {
                         data[contact]?.stream()?.filter { var1 -> var1.notify && var1.timestamp > curr }
                     for (countdown in activeCountdown!!){
                         val dur = countdown.timestamp - curr
-                        intervals@ for(interval in countdown.notifyInterval){
-                            if(interval < dur && dur % interval < config.daemonInterval){
-                                getContact(contact)?.sendMessage(TimeUtils.parseCountdownPattern(countdown, curr))
-                                break@intervals
+                        intervals@ for(interval in countdown.notifyInterval.asSequence().sortedDescending().toList()){
+                            if(interval < dur){
+                                if(dur % interval < config.daemonInterval){
+                                    getContact(contact)?.sendMessage(TimeUtils.parseCountdownPattern(countdown, curr))
+                                }
+                               break@intervals
                             }
                         }
 
