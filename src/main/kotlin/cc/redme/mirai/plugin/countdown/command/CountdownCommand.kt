@@ -2,7 +2,10 @@ package cc.redme.mirai.plugin.countdown.command
 
 import cc.redme.mirai.plugin.countdown.CountdownTasker
 import cc.redme.mirai.plugin.countdown.PluginMain
+import cc.redme.mirai.plugin.countdown.data.PluginData
+import cc.redme.mirai.plugin.countdown.delegate
 import cc.redme.mirai.plugin.countdown.event.AddCountdownEvent
+import cc.redme.mirai.plugin.countdown.event.EditCountdownEvent
 import cc.redme.mirai.plugin.countdown.utils.TimeUtils
 import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.CommandSenderOnMessage
@@ -52,6 +55,23 @@ object CountdownCommand: CompositeCommand(
             else ->  "权限不足"
         }
     )
+
+    @SubCommand("edit", "修改")
+    suspend fun CommandSenderOnMessage<*>.edit(index: Int, contact: Contact?=null){
+        val target: Contact = when{
+            contact!=null && hasPermission(PluginMain.crossContactPerm)-> contact
+            contact == null -> Contact()
+            else -> {
+                sendMessage("权限不足")
+                return
+            }
+        }
+        if(target.delegate !in PluginData.countdown.keys || index !in 0 until PluginData.countdown[target.delegate]!!.size) {
+            sendMessage("索引超出范围")
+            return
+        }
+        EditCountdownEvent(target, index, fromEvent).broadcast()
+    }
 
     private fun CommandSender.Contact(): Contact = subject?:throw CommandArgumentParserException("无法从当前环境获取联系人")
 }

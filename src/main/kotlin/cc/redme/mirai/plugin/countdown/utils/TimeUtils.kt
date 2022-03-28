@@ -70,13 +70,14 @@ object TimeUtils {
 
     /* 计算倒计时距离,并转化为更友好的的时间格式  */
     @OptIn(ExperimentalTime::class)
-    fun parseCountdownPattern(date: CountdownData, curr: Long): String {
+    fun parseCountdownPattern(date: CountdownData, curr: Long? = null): String {
+        val current = curr?: currentTimeStamp()
         var payload = ""
         val duration =
-            if(curr > date.timestamp){
-                (curr - date.timestamp).seconds
+            if(current > date.timestamp){
+                (current - date.timestamp).seconds
             }else{
-                (date.timestamp - curr).seconds
+                (date.timestamp - current).seconds
             }
         if(duration.inWholeDays > 0){
             payload += "${duration.inWholeDays}天"
@@ -98,15 +99,6 @@ object TimeUtils {
         val payload: MutableList<Long> = mutableListOf()
         intervalList.forEach{
             val entry = intervalPatternMap.asSequence().find { t->Regex(t.key).find(it)!=null }
-//            var entry: Map.Entry<String, Long>? = null
-//
-//            for(t in temp){
-//                if(Regex(t.key).find(it)!=null){
-//                if(it.matches(Regex(t.key))){
-//                    entry = t
-//                    break
-//                }
-//            }
 
             if (entry != null) {
                 payload.add((Regex(entry.key).find(it)?.value?.toLong() ?: 0) * entry.value)

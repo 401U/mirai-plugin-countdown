@@ -33,7 +33,7 @@ val Contact.delegate get() = (if (this is Group) id * -1 else id).toString()
 object CountdownTasker: CoroutineScope {
     override val coroutineContext: CoroutineContext = Dispatchers.IO + CoroutineName("CountdownTasker")
     private val config: PluginConfig = PluginConfig
-    private val mutex = Mutex()
+    val mutex = Mutex()
     private val data: MutableMap<String, MutableList<CountdownData>> = PluginData.countdown
     private var daemon: Job? = null
     private val logger = PluginMain.logger
@@ -143,9 +143,6 @@ object CountdownTasker: CoroutineScope {
 
     suspend fun checkKeyword(message: MessageChain, contact: Contact) = mutex.withLock{
         checkOrInitGroupData(contact)
-        if(message.content.length < 2){
-            return@withLock
-        }
         var reply = messageChainOf(message.quote())
         val matchMap = mutableMapOf<Int, String>()
         for(patternString in config.query_pattern){
