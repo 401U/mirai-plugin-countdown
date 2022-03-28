@@ -3,12 +3,13 @@ package cc.redme.mirai.plugin.countdown
 import cc.redme.mirai.plugin.countdown.command.CountdownCommand
 import cc.redme.mirai.plugin.countdown.data.PluginConfig
 import cc.redme.mirai.plugin.countdown.data.PluginData
-import cc.redme.mirai.plugin.countdown.event.CustomEventListener
+import cc.redme.mirai.plugin.countdown.event.EventListeners
 import net.mamoe.mirai.console.command.CommandManager
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
 import net.mamoe.mirai.console.permission.PermissionService
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
+import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.utils.info
 
 object PluginMain : KotlinPlugin(
@@ -39,7 +40,7 @@ object PluginMain : KotlinPlugin(
         if(PluginConfig.daemonInterval > 0){
             CountdownTasker.start()
         }
-        CustomEventListener.subscribe()
+        GlobalEventChannel.registerListenerHost(EventListeners)
     }
 
     override fun onDisable() {
@@ -48,6 +49,5 @@ object PluginMain : KotlinPlugin(
         PluginData.save()
         PluginConfig.save()
         super.onDisable()
-        CustomEventListener.stop()
     }
 }
