@@ -73,5 +73,14 @@ object CountdownCommand: CompositeCommand(
         EditCountdownEvent(target, index, fromEvent).broadcast()
     }
 
+    @SubCommand("info", "查看")
+    suspend fun CommandSender.info(index: Int, contact: Contact?=null)=sendMessage(
+        when{
+            contact != null && hasPermission(PluginMain.crossContactPerm) -> CountdownTasker.getInfo(index, contact)
+            contact == null -> CountdownTasker.getInfo(index, Contact())
+            else ->  "权限不足"
+        }
+    )
+
     private fun CommandSender.Contact(): Contact = subject?:throw CommandArgumentParserException("无法从当前环境获取联系人")
 }

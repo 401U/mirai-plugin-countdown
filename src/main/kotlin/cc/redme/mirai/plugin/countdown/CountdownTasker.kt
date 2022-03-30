@@ -179,4 +179,13 @@ object CountdownTasker: CoroutineScope {
         }
         return@withLock
     }
+
+    suspend fun getInfo(index: Int, contact: Contact): String = mutex.withLock {
+        checkOrInitGroupData(contact)
+        if(index in 0 until data[contact.delegate]?.size!!) {
+            data[contact.delegate]?.get(index)?.toString()!!
+        }else{
+            "下标不合法"
+        }
+    }
 }
